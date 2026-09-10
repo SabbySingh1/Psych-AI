@@ -1,0 +1,4 @@
+dataset,n_conversations,mean_within_conv_std,cohens_d_vs_esconv
+esconv,910,0.3924,0.0
+wildchat,50000,0.0104,-5.26
+sharechat,7727,0.0173,-4.7486

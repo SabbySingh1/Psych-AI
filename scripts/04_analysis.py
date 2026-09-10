@@ -42,6 +42,13 @@ def rank_biserial(u_stat: float, n1: int, n2: int) -> float:
     return 1 - (2 * u_stat) / (n1 * n2)
 
 
+def cohens_d(a: np.ndarray, b: np.ndarray) -> float:
+    if len(a) < 2 or len(b) < 2:
+        return float("nan")
+    pooled_sd = np.sqrt((np.var(a, ddof=1) + np.var(b, ddof=1)) / 2)
+    return float((np.mean(a) - np.mean(b)) / pooled_sd) if pooled_sd > 0 else 0.0
+
+
 def mannwhitney(a: np.ndarray, b: np.ndarray, label_a: str, label_b: str, feature: str) -> dict:
     u, p = stats.mannwhitneyu(a, b, alternative="two-sided")
     r = rank_biserial(u, len(a), len(b))
@@ -267,3 +274,261 @@ for feat, grp in pair_df.groupby("feature"):
         )
 
 print("\nDone. Tables saved to outputs/tables/")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SHARECHAT ANALYSIS — platform-level comparisons
+# ══════════════════════════════════════════════════════════════════════════════
+
+SC_INPUT = ROOT / "data/processed/sharechat_linguistic_features.csv"
+
+if not SC_INPUT.exists():
+    print(f"\n[ShareChat] {SC_INPUT} not found — skipping platform analysis.")
+else:
+    print("\n" + "═" * 70)
+    print("SHARECHAT PLATFORM ANALYSIS")
+    print("═" * 70)
+
+    sc = pd.read_csv(SC_INPUT, low_memory=False)
+    sc_asst = sc[sc["speaker"] == "assistant"].copy()
+    sc_user = sc[sc["speaker"] == "user"].copy()
+
+    PLATFORMS = ["chatgpt", "claude", "gemini", "grok", "perplexity"]
+
+    # ── ESConv baseline for Cohen's d ─────────────────────────────────────────
+    esconv_val_pos  = group_vec(df, "esconv", "supporter", "valence_pos")
+    esconv_entropy  = group_vec(df, "esconv", "supporter", "emotion_entropy")
+    esconv_empathy  = group_vec(df, "esconv", "supporter", "empathy_markers")
+
+    # ── S1: Platform ANOVA — AI assistant turns across 5 platforms ───────────
+    print("\n[S1] Platform ANOVA — AI assistant valence / entropy / empathy")
+    s1_rows = []
+    for feat, baseline in [
+        ("valence_pos",     esconv_val_pos),
+        ("emotion_entropy", esconv_entropy),
+        ("empathy_markers", esconv_empathy),
+    ]:
+        arrays = [sc_asst.loc[sc_asst["platform"] == p, feat].dropna().values for p in PLATFORMS]
+        arrays = [a for a in arrays if len(a) > 0]
+        if len(arrays) >= 2:
+            h, p = stats.kruskal(*arrays)
+            print(f"  {feat}: H={h:.2f}, p={p:.2e}")
+
+        for p_name in PLATFORMS:
+            vals = sc_asst.loc[sc_asst["platform"] == p_name, feat].dropna().values
+            d = cohens_d(vals, baseline)
+            s1_rows.append({
+                "platform": p_name,
+                "feature": feat,
+                "n": len(vals),
+                "mean": float(np.mean(vals)) if len(vals) else float("nan"),
+                "cohens_d_vs_esconv": round(d, 4),
+            })
+
+    s1_df = pd.DataFrame(s1_rows)
+    s1_df.to_csv(TABLES / "sharechat_platform_anova.csv", index=False)
+    print(s1_df.pivot(index="platform", columns="feature",
+                      values=["mean", "cohens_d_vs_esconv"]).round(4).to_string())
+
+    # ── S2: Mirroring by platform — AI response when user is distressed ───────
+    print("\n[S2] Emotional mirroring by platform (user valence_neg > 0.4)")
+
+    sc_sorted = sc.sort_values(["conversation_id", "turn_number"]).reset_index(drop=True)
+    sc_sorted["next_speaker"]     = sc_sorted.groupby("conversation_id")["speaker"].shift(-1)
+    sc_sorted["next_valence_pos"] = sc_sorted.groupby("conversation_id")["valence_pos"].shift(-1)
+    sc_sorted["next_empathy"]     = sc_sorted.groupby("conversation_id")["empathy_markers"].shift(-1)
+
+    # user turns followed by an assistant turn
+    mirror = sc_sorted[
+        (sc_sorted["speaker"] == "user") &
+        (sc_sorted["next_speaker"] == "assistant") &
+        (sc_sorted["valence_neg"] > 0.4)
+    ].copy()
+
+    s2_rows = []
+    for p_name in PLATFORMS:
+        sub = mirror[mirror["platform"] == p_name]
+        if len(sub) == 0:
+            continue
+        s2_rows.append({
+            "platform": p_name,
+            "n_distressed_turns": len(sub),
+            "user_valence_neg_mean": round(sub["valence_neg"].mean(), 4),
+            "ai_response_valence_pos_mean": round(sub["next_valence_pos"].mean(), 4),
+            "ai_response_empathy_mean": round(sub["next_empathy"].mean(), 4),
+        })
+
+    s2_df = pd.DataFrame(s2_rows)
+    s2_df.to_csv(TABLES / "sharechat_mirroring_by_platform.csv", index=False)
+    print(s2_df.to_string(index=False))
+
+    # Kruskal-Wallis: does platform moderate AI response valence to distressed users?
+    mirror_arrays = [
+        mirror.loc[mirror["platform"] == p, "next_valence_pos"].dropna().values
+        for p in PLATFORMS
+    ]
+    mirror_arrays = [a for a in mirror_arrays if len(a) > 0]
+    if len(mirror_arrays) >= 2:
+        h, p = stats.kruskal(*mirror_arrays)
+        print(f"\n  KW test — AI response valence to distressed users: H={h:.2f}, p={p:.2e}")
+
+    # ── S3: Self-disclosure by platform ──────────────────────────────────────
+    print("\n[S3] Self-disclosure by platform (user turns)")
+
+    esconv_sd = group_vec(df, "esconv", "user", "self_disclosure")
+
+    s3_rows = []
+    for p_name in PLATFORMS:
+        vals = sc_user.loc[sc_user["platform"] == p_name, "self_disclosure"].dropna().values
+        d = cohens_d(vals, esconv_sd)
+        s3_rows.append({
+            "platform": p_name,
+            "n": len(vals),
+            "mean_self_disclosure": round(float(np.mean(vals)), 4) if len(vals) else float("nan"),
+            "cohens_d_vs_esconv_user": round(d, 4),
+        })
+
+    s3_df = pd.DataFrame(s3_rows)
+    s3_df.to_csv(TABLES / "sharechat_self_disclosure_by_platform.csv", index=False)
+    print(s3_df.to_string(index=False))
+
+    sd_arrays = [
+        sc_user.loc[sc_user["platform"] == p, "self_disclosure"].dropna().values
+        for p in PLATFORMS
+    ]
+    sd_arrays = [a for a in sd_arrays if len(a) > 0]
+    if len(sd_arrays) >= 2:
+        h, p = stats.kruskal(*sd_arrays)
+        print(f"\n  KW test — self-disclosure across platforms: H={h:.2f}, p={p:.2e}")
+
+    print("\n[S4] Cross-dataset turn-pair mirroring → see 06_mirroring_analysis.py")
+    print("  (mirroring_results.csv, mirroring_coefficients.csv)")
+
+    print("\nShareChat analysis saved to outputs/tables/")
+    print("  sharechat_platform_anova.csv")
+    print("  sharechat_mirroring_by_platform.csv")
+    print("  sharechat_self_disclosure_by_platform.csv")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# S5: WITHIN-CONVERSATION EMOTIONAL VARIANCE
+# ══════════════════════════════════════════════════════════════════════════════
+
+print("\n" + "═" * 70)
+print("S5: WITHIN-CONVERSATION EMOTIONAL VARIANCE (user turns only)")
+print("═" * 70)
+
+user_speaker_map = {"esconv": "user", "lmsys": "user", "wildchat": "user"}
+user_rows = df[df["speaker"] == "user"].copy()
+
+conv_var = (
+    user_rows.groupby(["dataset", "conversation_id"])["valence_neg"]
+    .std()
+    .rename("valence_neg_std")
+    .reset_index()
+)
+conv_var["valence_neg_std"] = conv_var["valence_neg_std"].fillna(0.0)
+
+esconv_var = conv_var.loc[conv_var["dataset"] == "esconv", "valence_neg_std"].values
+
+s5_rows = []
+for ds in conv_var["dataset"].unique():
+    vals = conv_var.loc[conv_var["dataset"] == ds, "valence_neg_std"].values
+    d = cohens_d(vals, esconv_var) if ds != "esconv" and len(esconv_var) > 1 else 0.0
+    s5_rows.append({
+        "dataset": ds,
+        "n_conversations": len(vals),
+        "mean_within_conv_std": round(float(np.mean(vals)), 4),
+        "cohens_d_vs_esconv": round(d, 4),
+    })
+
+# ShareChat, if available
+if SC_INPUT.exists():
+    sc_user_rows = sc[sc["speaker"] == "user"]
+    sc_conv_var = (
+        sc_user_rows.groupby("conversation_id")["valence_neg"]
+        .std().rename("valence_neg_std").reset_index()
+    )
+    sc_conv_var["valence_neg_std"] = sc_conv_var["valence_neg_std"].fillna(0.0)
+    d = cohens_d(sc_conv_var["valence_neg_std"].values, esconv_var)
+    s5_rows.append({
+        "dataset": "sharechat",
+        "n_conversations": len(sc_conv_var),
+        "mean_within_conv_std": round(float(sc_conv_var["valence_neg_std"].mean()), 4),
+        "cohens_d_vs_esconv": round(d, 4),
+    })
+
+s5_df = pd.DataFrame(s5_rows)
+s5_df.to_csv(TABLES / "within_conversation_variance.csv", index=False)
+print(s5_df.to_string(index=False))
+print("\nSaved within_conversation_variance.csv")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# S6: DISTRESSED-CONVERSATION FLAG
+# ══════════════════════════════════════════════════════════════════════════════
+
+print("\n" + "═" * 70)
+print("S6: DISTRESSED CONVERSATIONS (mean user valence_neg > 0.4)")
+print("═" * 70)
+
+conv_mean_neg = (
+    user_rows.groupby(["dataset", "conversation_id"])["valence_neg"]
+    .mean().rename("mean_user_valence_neg").reset_index()
+)
+conv_mean_neg["distressed"] = conv_mean_neg["mean_user_valence_neg"] > 0.4
+
+conv_len = df.groupby(["dataset", "conversation_id"])["turn_number"].max().rename("n_turns").reset_index()
+
+conv_ai_pos = (
+    df[df["speaker"].isin(["assistant", "supporter"])]
+    .groupby(["dataset", "conversation_id"])["valence_pos"]
+    .mean().rename("mean_ai_valence_pos").reset_index()
+)
+
+merged = conv_mean_neg.merge(conv_len, on=["dataset", "conversation_id"]) \
+                       .merge(conv_ai_pos, on=["dataset", "conversation_id"], how="left")
+
+s6_rows = []
+for ds in merged["dataset"].unique():
+    sub = merged[merged["dataset"] == ds]
+    pct_distressed = 100 * sub["distressed"].mean()
+    ai_pos_distressed = sub.loc[sub["distressed"], "mean_ai_valence_pos"].mean()
+    ai_pos_normal     = sub.loc[~sub["distressed"], "mean_ai_valence_pos"].mean()
+    len_distressed    = sub.loc[sub["distressed"], "n_turns"].mean()
+    len_normal        = sub.loc[~sub["distressed"], "n_turns"].mean()
+    s6_rows.append({
+        "dataset": ds,
+        "n_conversations": len(sub),
+        "pct_distressed": round(pct_distressed, 2),
+        "ai_valence_pos_distressed": round(ai_pos_distressed, 4) if pd.notna(ai_pos_distressed) else float("nan"),
+        "ai_valence_pos_normal": round(ai_pos_normal, 4) if pd.notna(ai_pos_normal) else float("nan"),
+        "mean_turns_distressed": round(len_distressed, 2) if pd.notna(len_distressed) else float("nan"),
+        "mean_turns_normal": round(len_normal, 2) if pd.notna(len_normal) else float("nan"),
+    })
+
+# ShareChat
+if SC_INPUT.exists():
+    sc_conv_mean_neg = sc_user_rows.groupby("conversation_id")["valence_neg"].mean() \
+                         .rename("mean_user_valence_neg").reset_index()
+    sc_conv_mean_neg["distressed"] = sc_conv_mean_neg["mean_user_valence_neg"] > 0.4
+    sc_conv_len = sc.groupby("conversation_id")["turn_number"].max().rename("n_turns").reset_index()
+    sc_conv_ai_pos = sc[sc["speaker"] == "assistant"].groupby("conversation_id")["valence_pos"] \
+                        .mean().rename("mean_ai_valence_pos").reset_index()
+    sc_merged = sc_conv_mean_neg.merge(sc_conv_len, on="conversation_id") \
+                                 .merge(sc_conv_ai_pos, on="conversation_id", how="left")
+    pct_distressed = 100 * sc_merged["distressed"].mean()
+    s6_rows.append({
+        "dataset": "sharechat",
+        "n_conversations": len(sc_merged),
+        "pct_distressed": round(pct_distressed, 2),
+        "ai_valence_pos_distressed": round(sc_merged.loc[sc_merged["distressed"], "mean_ai_valence_pos"].mean(), 4),
+        "ai_valence_pos_normal": round(sc_merged.loc[~sc_merged["distressed"], "mean_ai_valence_pos"].mean(), 4),
+        "mean_turns_distressed": round(sc_merged.loc[sc_merged["distressed"], "n_turns"].mean(), 2),
+        "mean_turns_normal": round(sc_merged.loc[~sc_merged["distressed"], "n_turns"].mean(), 2),
+    })
+
+s6_df = pd.DataFrame(s6_rows)
+s6_df.to_csv(TABLES / "distressed_conversations.csv", index=False)
+print(s6_df.to_string(index=False))
+print("\nSaved distressed_conversations.csv")

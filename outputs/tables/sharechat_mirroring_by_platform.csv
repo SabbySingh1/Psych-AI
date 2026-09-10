@@ -1,0 +1,6 @@
+platform,n_distressed_turns,user_valence_neg_mean,ai_response_valence_pos_mean,ai_response_empathy_mean
+chatgpt,230,0.743,0.3564,0.0109
+claude,168,0.7261,0.2633,0.0078
+gemini,241,0.6897,0.452,0.0196
+grok,129,0.701,0.2755,0.0049
+perplexity,46,0.6766,0.1194,0.0054

@@ -1,0 +1,10 @@
+dataset,platform,label,n_pairs,r_user_neg_to_ai_pos,p_user_neg_to_ai_pos,r_user_neg_to_ai_neg,p_user_neg_to_ai_neg,anova_F,anova_p,interpretation
+esconv,—,ESConv (human supporter),10191,-0.2254,0.0,0.2982,0.0,554.602,0.0,"true mirroring (reduces positivity, raises negativity)"
+wildchat,—,WildChat,145142,0.0966,0.0,0.2578,0.0,6538.71,0.0,sycophantic (raises positivity despite distress)
+lmsys,—,LMSYS,0,,,,,,,N/A — no user turns in this dataset
+sharechat,—,ShareChat (all),22451,0.0822,0.0,0.2134,0.0,996.194,0.0,sycophantic (raises positivity despite distress)
+sharechat,chatgpt,ShareChat/chatgpt,4841,0.0799,0.0,0.2847,0.0,152.74,0.0,sycophantic (raises positivity despite distress)
+sharechat,claude,ShareChat/claude,3340,0.0267,0.123,0.2142,0.0,65.643,0.0,flat affect
+sharechat,gemini,ShareChat/gemini,4689,0.106,0.0,0.207,0.0,175.478,0.0,sycophantic (raises positivity despite distress)
+sharechat,grok,ShareChat/grok,4774,0.0377,0.0091,0.221,0.0,434.376,0.0,flat affect
+sharechat,perplexity,ShareChat/perplexity,4807,0.0098,0.4962,0.1157,0.0,136.623,0.0,flat affect

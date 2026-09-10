@@ -29,10 +29,11 @@ from scipy import stats
 warnings.filterwarnings("ignore")
 
 # ── paths ──────────────────────────────────────────────────────────────────────
-ROOT    = Path(__file__).resolve().parents[1]
-LF      = ROOT / "data/processed/linguistic_features.csv"
-PAIRS   = ROOT / "outputs/tables/pairwise_comparisons.csv"
-FIGURES = ROOT / "outputs/figures"
+ROOT     = Path(__file__).resolve().parents[1]
+LF       = ROOT / "data/processed/linguistic_features.csv"
+PAIRS    = ROOT / "outputs/tables/pairwise_comparisons.csv"
+MIRROR   = ROOT / "outputs/tables/mirroring_coefficients.csv"
+FIGURES  = ROOT / "outputs/figures"
 FIGURES.mkdir(parents=True, exist_ok=True)
 
 # ── palette (reference categorical, light mode) ────────────────────────────────
@@ -42,9 +43,19 @@ PAL = {
     "LMSYS-assistant":     "#1baf7a",
     "WildChat-assistant":  "#eda100",
     "WildChat-user":       "#e87ba4",
+    "ShareChat-assistant": "#008300",
+    "ShareChat-user":      "#4a3aa7",
 }
 GROUPS = list(PAL.keys())
 COLORS = [PAL[g] for g in GROUPS]
+
+SC_PLATFORM_PAL = {
+    "chatgpt":    "#2a78d6",
+    "claude":     "#eb6834",
+    "gemini":     "#1baf7a",
+    "grok":       "#eda100",
+    "perplexity": "#e87ba4",
+}
 
 # chart chrome
 SURFACE   = "#fcfcfb"
@@ -99,20 +110,28 @@ def group_mean_sem(df, feature, group_col="group"):
 # ── load data ──────────────────────────────────────────────────────────────────
 print("Loading data ...")
 df = pd.read_csv(LF, low_memory=False)
-df["group"] = df["dataset"].str.cat(df["speaker"], sep="-").str.replace(
-    "esconv", "ESConv").str.replace("wildchat", "WildChat").str.replace(
-    "lmsys", "LMSYS").str.replace("-supporter", "-supporter").str.replace(
-    "-assistant", "-assistant").str.replace("-user", "-user")
 
-# normalize group labels
 remap = {
-    "ESConv-supporter": "ESConv-supporter",
-    "ESConv-user":      "ESConv-user",
-    "LMSYS-assistant":  "LMSYS-assistant",
-    "WildChat-assistant": "WildChat-assistant",
-    "WildChat-user":    "WildChat-user",
+    "esconv-supporter":   "ESConv-supporter",
+    "esconv-user":        "ESConv-user",
+    "lmsys-assistant":    "LMSYS-assistant",
+    "wildchat-assistant": "WildChat-assistant",
+    "wildchat-user":      "WildChat-user",
 }
-df["group"] = df["group"].map(remap)
+df["group"] = (df["dataset"] + "-" + df["speaker"]).map(remap)
+
+# merge ShareChat, if available
+SC_LF = ROOT / "data/processed/sharechat_linguistic_features.csv"
+if SC_LF.exists():
+    sc_df = pd.read_csv(SC_LF, low_memory=False)
+    sc_remap = {"assistant": "ShareChat-assistant", "user": "ShareChat-user"}
+    sc_df["group"] = sc_df["speaker"].map(sc_remap)
+    common_cols = [c for c in df.columns if c in sc_df.columns]
+    df = pd.concat([df[common_cols], sc_df[common_cols]], ignore_index=True)
+    print(f"  ShareChat merged: {len(sc_df):,} turns")
+else:
+    GROUPS[:] = [g for g in GROUPS if not g.startswith("ShareChat")]
+    COLORS[:] = [PAL[g] for g in GROUPS]
 
 pairs_df = pd.read_csv(PAIRS)
 print(f"  {len(df):,} turns across {df['group'].nunique()} groups")
@@ -122,7 +141,7 @@ conv_df = df.drop_duplicates("conversation_id")[
     ["conversation_id", "dataset", "valence_arc_slope_pos"]
 ].copy()
 conv_df["dataset_label"] = conv_df["dataset"].map(
-    {"esconv": "ESConv", "lmsys": "LMSYS", "wildchat": "WildChat"}
+    {"esconv": "ESConv", "lmsys": "LMSYS", "wildchat": "WildChat", "sharechat": "ShareChat"}
 )
 
 
@@ -207,7 +226,13 @@ for ax, (feat, label) in zip(axes, feat_info):
            error_kw={"elinewidth": 1.0, "ecolor": INK_MUT, "capsize": 2},
            linewidth=0)
     ax.set_xticks(x)
-    ax.set_xticklabels(["ES-sup", "ES-usr", "LM-ast", "WC-ast", "WC-usr"],
+    abbrev = {
+        "ESConv-supporter": "ES-sup", "ESConv-user": "ES-usr",
+        "LMSYS-assistant": "LM-ast",
+        "WildChat-assistant": "WC-ast", "WildChat-user": "WC-usr",
+        "ShareChat-assistant": "SC-ast", "ShareChat-user": "SC-usr",
+    }
+    ax.set_xticklabels([abbrev[g] for g in GROUPS],
                        rotation=35, ha="right", fontsize=7.5)
     ax.set_title(label, fontsize=9)
     ax.spines["bottom"].set_color(BASELINE)
@@ -292,8 +317,9 @@ save(fig, "fig5_heatmap")
 
 # ── Fig 6: Valence Arc Slope ──────────────────────────────────────────────────
 print("Fig 6: Valence arc slope ...")
-arc_pal = {"ESConv": "#2a78d6", "LMSYS": "#1baf7a", "WildChat": "#eda100"}
-ds_labels = ["ESConv", "LMSYS", "WildChat"]
+arc_pal = {"ESConv": "#2a78d6", "LMSYS": "#1baf7a", "WildChat": "#eda100", "ShareChat": "#008300"}
+ds_labels = [d for d in ["ESConv", "LMSYS", "WildChat", "ShareChat"]
+             if d in conv_df["dataset_label"].unique()]
 
 arc_means, arc_sems = [], []
 for ds in ds_labels:
@@ -316,6 +342,67 @@ for xi, (m, s) in zip(x, zip(arc_means, arc_sems)):
             fontsize=8.5, color=INK_MUT)
 fig.tight_layout()
 save(fig, "fig6_valence_arc")
+
+
+# ── Fig 7: Emotional Mirroring Coefficient ────────────────────────────────────
+if MIRROR.exists():
+    print("Fig 7: Emotional mirroring coefficient ...")
+    m = pd.read_csv(MIRROR)
+
+    # x-axis order: ESConv (human benchmark) first, then the 3 AI datasets,
+    # then the 5 ShareChat platforms
+    order = ["ESConv (human supporter)", "WildChat", "ShareChat (all)",
+             "ShareChat/chatgpt", "ShareChat/claude", "ShareChat/gemini",
+             "ShareChat/grok", "ShareChat/perplexity"]
+    m = m.set_index("label").loc[[o for o in order if o in m["label"].values]].reset_index()
+
+    disp_labels = {
+        "ESConv (human supporter)": "ESConv\n(human)",
+        "WildChat":                 "WildChat",
+        "ShareChat (all)":          "ShareChat\n(all)",
+        "ShareChat/chatgpt":        "ChatGPT",
+        "ShareChat/claude":         "Claude",
+        "ShareChat/gemini":         "Gemini",
+        "ShareChat/grok":           "Grok",
+        "ShareChat/perplexity":     "Perplexity",
+    }
+    bar_colors = {
+        "ESConv (human supporter)": "#2a78d6",
+        "WildChat":                 "#eda100",
+        "ShareChat (all)":          "#008300",
+        "ShareChat/chatgpt":        SC_PLATFORM_PAL["chatgpt"],
+        "ShareChat/claude":         SC_PLATFORM_PAL["claude"],
+        "ShareChat/gemini":         SC_PLATFORM_PAL["gemini"],
+        "ShareChat/grok":           SC_PLATFORM_PAL["grok"],
+        "ShareChat/perplexity":     SC_PLATFORM_PAL["perplexity"],
+    }
+
+    x = np.arange(len(m))
+    colors = [bar_colors[label] for label in m["label"]]
+
+    fig, ax = plt.subplots(figsize=(11, 5))
+    bars = ax.bar(x, m["r_user_neg_to_ai_pos"], color=colors, width=0.6, linewidth=0)
+    ax.axhline(0, color=INK_MUT, linewidth=1.2, linestyle="--", zorder=1,
+               label="No mirroring (r = 0)")
+    ax.set_xticks(x)
+    ax.set_xticklabels([disp_labels[l] for l in m["label"]], fontsize=9)
+    ax.set_ylabel("Pearson r: user distress (N) → AI positive valence (N+1)")
+    ax.set_title(
+        "Emotional Mirroring — Does AI Track User Distress?\n"
+        "(negative = AI pulls back positivity like a human supporter; "
+        "positive = AI grows warmer despite distress)",
+        pad=12, fontsize=11
+    )
+    for xi, r in zip(x, m["r_user_neg_to_ai_pos"]):
+        va = "bottom" if r >= 0 else "top"
+        offset = 0.008 if r >= 0 else -0.008
+        ax.text(xi, r + offset, f"{r:.3f}", ha="center", va=va, fontsize=8, color=INK_MUT)
+    ax.legend(loc="upper right", fontsize=8.5)
+    ax.grid(axis="x", linewidth=0)
+    fig.tight_layout()
+    save(fig, "fig7_mirroring")
+else:
+    print(f"Fig 7 skipped — {MIRROR} not found (run 06_mirroring_analysis.py first)")
 
 
 print(f"\nAll figures saved to {FIGURES}/")

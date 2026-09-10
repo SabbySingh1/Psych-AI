@@ -1,0 +1,25 @@
+dataset,platform,label,user_state,n_pairs,user_neg_mean,ai_pos_mean,ai_neg_mean
+esconv,—,ESConv (human supporter),distressed,2849,0.9266,0.4179,0.3494
+esconv,—,ESConv (human supporter),neutral,3387,0.1011,0.4953,0.1886
+esconv,—,ESConv (human supporter),positive,3955,0.0528,0.7925,0.1139
+wildchat,—,WildChat,distressed,1286,0.764,0.257,0.3642
+wildchat,—,WildChat,neutral,139604,0.0161,0.1087,0.0443
+wildchat,—,WildChat,positive,4252,0.0209,0.5086,0.077
+sharechat,—,ShareChat (all),distressed,652,0.7776,0.3381,0.1945
+sharechat,—,ShareChat (all),neutral,19598,0.0196,0.1914,0.0457
+sharechat,—,ShareChat (all),positive,2201,0.0152,0.4829,0.051
+sharechat,chatgpt,ShareChat/chatgpt,distressed,192,0.8005,0.3388,0.1985
+sharechat,chatgpt,ShareChat/chatgpt,neutral,3991,0.0209,0.2071,0.0294
+sharechat,chatgpt,ShareChat/chatgpt,positive,658,0.0123,0.4287,0.0464
+sharechat,claude,ShareChat/claude,distressed,141,0.7781,0.28,0.1865
+sharechat,claude,ShareChat/claude,neutral,2795,0.0257,0.2276,0.0576
+sharechat,claude,ShareChat/claude,positive,404,0.0173,0.4196,0.0546
+sharechat,gemini,ShareChat/gemini,distressed,177,0.7741,0.471,0.2335
+sharechat,gemini,ShareChat/gemini,neutral,4055,0.0238,0.2838,0.0774
+sharechat,gemini,ShareChat/gemini,positive,457,0.0191,0.5703,0.0457
+sharechat,grok,ShareChat/grok,distressed,107,0.7518,0.2597,0.1495
+sharechat,grok,ShareChat/grok,neutral,4143,0.0183,0.1675,0.0273
+sharechat,grok,ShareChat/grok,positive,524,0.0145,0.5616,0.018
+sharechat,perplexity,ShareChat/perplexity,distressed,35,0.7464,0.1357,0.1454
+sharechat,perplexity,ShareChat/perplexity,neutral,4614,0.0121,0.0963,0.0414
+sharechat,perplexity,ShareChat/perplexity,positive,158,0.0134,0.3572,0.1857

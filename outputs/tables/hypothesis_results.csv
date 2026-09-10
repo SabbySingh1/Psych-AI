@@ -1,0 +1,6 @@
+hypothesis,description,feature,groups,H,p,significant
+H1,AI assistants vs ESConv supporters: positive valence,valence_pos,ESConv-supporter | LMSYS-assistant | WildChat-assistant,24514.731877988725,0.0,True
+H2,User negative valence: ESConv vs WildChat (LMSYS has no user turns),valence_neg,ESConv-user | WildChat-user,21787.955664748217,0.0,True
+H3,Empathy marker density: human supporters vs AI assistants,empathy_markers,ESConv-supporter | LMSYS-assistant | WildChat-assistant,3516.1983812806498,0.0,True
+H4,Emotion entropy: human vs AI,emotion_entropy,ESConv-supporter | ESConv-user | LMSYS-assistant | WildChat-assistant,44049.081780185945,0.0,True
+H5,Valence arc slope (pos) across datasets,valence_arc_slope_pos,ESConv | LMSYS | WildChat,1091.656743717783,8.90738113192914e-238,True

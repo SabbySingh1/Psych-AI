@@ -38,13 +38,11 @@ Hypotheses are grounded in the existing robopsychology and human-computer intera
 | Dataset | Conversations | Turns | Language | Focus |
 |---|---|---|---|---|
 | [ESConv](https://huggingface.co/datasets/thu-coai/esconv) | 910 | 26,648 | English | Human emotional support counseling |
-| [WildChat-1M](https://huggingface.co/datasets/allenai/WildChat-1M) | 50,000 | ~290,000 | English | Real-world GPT-3/4 conversations |
-| [LMSYS-Chat-1M](https://huggingface.co/datasets/lmsys/lmsys-chat-1m) | 50,000 | ~202,000 | English | Multi-model chat (gated) |
-| [Talk2AI](https://arxiv.org/abs/2604.04354) | 3,080 | 30,800 | Italian | Human-AI persuasion (side comparison) |
+| [WildChat-1M](https://huggingface.co/datasets/allenai/WildChat-1M) | 50,000 | 290,284 | English | Real-world GPT-3/4 conversations |
+| [LMSYS-Chat-1M](https://huggingface.co/datasets/lmsys/lmsys-chat-1m) | 50,000 | 202,030 | English | Multi-model chat (gated) |
+| [ShareChat](https://huggingface.co/datasets/tucnguyen/ShareChat) | 7,936 | 46,842 | English | Publicly shared conversations across 5 commercial AI platforms (ChatGPT, Claude, Gemini, Grok, Perplexity) |
 
-**Total primary corpus:** ~100,910 conversations / ~518,962 turns
-
-Talk2AI is used as a secondary cross-linguistic comparison only. Because the primary emotion classifier is English-only, Talk2AI is scored with a separate multilingual model and treated as supplementary evidence rather than a core dataset.
+**Total primary corpus:** 108,846 conversations / 565,804 turns
 
 ### What Makes This Novel
 
@@ -116,7 +114,7 @@ GoEmotions → Ekman mapping used:
 | Column | Description |
 |---|---|
 | conversation_id | SHA-1 hash of dataset + raw ID (stable across runs) |
-| dataset | esconv / wildchat / lmsys / talk2ai |
+| dataset | esconv / wildchat / lmsys / sharechat |
 | turn_number | 0-indexed position in conversation |
 | speaker | user / assistant / supporter |
 | text | Raw turn text |
@@ -194,5 +192,5 @@ Backup: *PLOS ONE* — open access, broad methodological scope, ensures public a
 - Liu et al. (2021). [ESConv: Towards Emotional Support Conversation Systems](https://arxiv.org/abs/2106.01144).
 - Zhao et al. (2023). [WildChat: 1M ChatGPT Interaction Logs in the Wild](https://arxiv.org/abs/2405.01470).
 - Zheng et al. (2023). [LMSYS-Chat-1M: A Large-Scale Real-World LLM Conversation Dataset](https://arxiv.org/abs/2309.11998).
-- Demichelis et al. (2025). [Talk2AI: A Longitudinal Dataset of Human-AI Persuasive Conversations](https://arxiv.org/abs/2604.04354).
+- Nguyen et al. [ShareChat](https://huggingface.co/datasets/tucnguyen/ShareChat).
 - Lowe et al. (2022). [SamLowe/roberta-base-go_emotions](https://huggingface.co/SamLowe/roberta-base-go_emotions).

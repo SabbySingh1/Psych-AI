@@ -1,0 +1,5 @@
+dataset,n_conversations,n_flagged_conversations,pct_flagged,ai_valence_pos_flagged,ai_valence_pos_unflagged,ai_empathy_flagged,ai_empathy_unflagged,mean_turns_flagged,mean_turns_unflagged,cohens_d_valence_flagged_vs_unflagged
+esconv,910,6,0.659,0.5641,0.5537,0.0287,0.0307,27.67,28.29,0.02
+wildchat,50000,19,0.038,0.3434,0.1217,0.0039,0.0024,3.95,4.81,0.6923
+lmsys,50000,0,0.0,,0.1224,,0.0041,,3.04,
+sharechat,7936,1,0.013,0.2854,0.221,0.007,0.0052,20.0,6.74,0.1843

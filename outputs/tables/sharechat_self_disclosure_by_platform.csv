@@ -1,0 +1,6 @@
+platform,n,mean_self_disclosure,cohens_d_vs_esconv_user
+chatgpt,5009,0.0228,-1.0107
+claude,3366,0.0299,-0.9071
+gemini,5013,0.0236,-1.0002
+grok,5024,0.0241,-0.9677
+perplexity,4957,0.0122,-1.232

@@ -1,0 +1,4 @@
+dataset,n_conversations,pct_distressed,ai_valence_pos_distressed,ai_valence_pos_normal,mean_turns_distressed,mean_turns_normal
+esconv,910,20.99,0.5275,0.5674,25.24,29.09
+wildchat,50000,0.71,0.2791,0.1299,2.01,4.83
+sharechat,7727,1.11,0.2234,0.1376,4.15,6.77

@@ -20,6 +20,3 @@ notebooks/.ipynb_checkpoints/
 # macOS
 .DS_Store
 
-# Outputs (figures/tables committed selectively)
-outputs/figures/
-outputs/tables/

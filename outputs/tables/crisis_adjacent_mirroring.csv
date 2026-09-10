@@ -1,0 +1,5 @@
+dataset,label,n_pairs_in_flagged_convs,r_user_neg_to_ai_pos,p_user_neg_to_ai_pos,r_user_neg_to_ai_neg,p_user_neg_to_ai_neg,note
+esconv,ESConv (human supporter),72,-0.3904,0.0007,0.5456,0.0,
+wildchat,WildChat,47,0.0648,0.6654,-0.0873,0.55953,
+lmsys,LMSYS,0,,,,,no user turns / no flagged pairs
+sharechat,ShareChat (all),10,-0.1234,0.73404,0.6405,0.04603,
