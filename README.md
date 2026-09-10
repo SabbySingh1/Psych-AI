@@ -1,74 +1,66 @@
 # Psych-AI
 
+Computational comparison of emotional expression, empathy, and self-disclosure in human counseling versus AI-mediated conversation.
+
+**[Read the full paper →](paper/full_draft.md)**
+
 ## Overview
 
-Human interaction with AI systems has moved far beyond task completion. People increasingly turn to AI chatbots for emotional support, personal disclosure, and companionship — yet the psychological dynamics of these interactions remain poorly understood. This project applies computational methods to characterize how emotional expression, empathy, and self-disclosure unfold differently in human-to-human counseling versus human-to-AI conversation, across four large-scale public datasets totaling over 100,000 conversations.
+People increasingly bring emotional disclosure and requests for support into conversations with AI systems that have no human counterpart in the loop. This project applies a single unified emotion-classification and linguistic-feature pipeline to four large-scale conversation corpora — human emotional-support counseling (ESConv), naturalistic AI chat (WildChat), a multi-model comparison arena (LMSYS-Chat-1M), and publicly shared conversations across five commercial AI platforms (ShareChat) — to ask whether AI systems track user distress the way a trained human supporter does, and whether that varies by platform.
 
-This sits within the emerging field of **robopsychology** — the psychological study of how humans relate to, are shaped by, and form patterns of interaction with AI systems. To our knowledge, this is the first study to conduct a cross-dataset emotional analysis using human counseling conversations (ESConv) as a psychological baseline against which naturalistic and structured AI conversations are systematically compared.
+This sits within **robopsychology** — the study of how humans relate to, and are shaped by, AI systems.
 
----
+## Key Findings
+
+- Users disclose personal content to AI at roughly **one-tenth the rate** observed with human counselors — a gap that persists even in publicly shared conversations.
+- Emotional range within a single AI conversation is **four to five standard deviations narrower** than with a human counselor.
+- Turn-pair analysis of 177,784 user-to-AI exchanges shows human supporters **reduce** their own positivity as user distress rises (r = −0.225); every AI platform tested shows the **opposite** direction (r = 0.010–0.106) — a sign inversion, not just a weaker effect.
+- This varies systematically by platform: Gemini's response most closely approximates human tracking; Perplexity's is flattest; Claude and Grok fall in between.
+- AI-mediated distressed conversations are **shorter**, not longer, than non-distressed ones — a pattern that complicates simple engagement-optimization explanations of this behavior.
+
+Full statistics, methodology, limitations, and discussion are in [`paper/full_draft.md`](paper/full_draft.md). Figures are in [`outputs/figures/`](outputs/figures/); result tables are in [`outputs/tables/`](outputs/tables/).
 
 ## Research Questions
 
-- How do emotion distributions differ between human counselors and AI assistants?
-- Do AI models (GPT-4, Claude, Mistral, etc.) mirror user emotional states or respond with consistent affect regardless of user emotion?
-- How does self-disclosure and hedging language vary across datasets and speaker roles?
-- What does the emotional arc of a conversation look like — and does it differ between ESConv support sessions and open-domain AI chat?
+- Do AI assistants show a different balance of positive and negative affect than human counselors, independent of the user's own emotional state?
+- Do human counselors show greater turn-by-turn emotional alignment with user distress than AI assistants?
+- Does self-disclosure differ systematically between human-counseling and AI-mediated contexts, and with platform?
+- Does a human-counseling conversation show a measurable emotional arc across turns that AI-mediated conversation lacks?
 
----
-
-## Hypotheses
-
-Hypotheses are grounded in the existing robopsychology and human-computer interaction literature and are stated directionally prior to analysis.
-
-**H1 — Emotion distribution:** AI assistants will show significantly higher positive affect (joy, optimism) and lower negative affect (sadness, fear) than human counselors in ESConv, regardless of the user's emotional state. This is predicted by research showing LLMs are biased toward positive emotional tone and by sycophancy literature demonstrating that AI systems systematically affirm and validate users.
-
-**H2 — Emotional mirroring:** Human counselors in ESConv will show greater turn-by-turn emotional alignment with the user than AI assistants across WildChat and LMSYS. AI assistants are expected to maintain more stable, context-independent affect — consistent with findings that LLMs lock into repetitive support tactics at nearly double the rate of human supporters.
-
-**H3 — Self-disclosure asymmetry:** Users in WildChat (naturalistic, unsolicited use) will show significantly higher rates of emotional self-disclosure than users in LMSYS (evaluation context), reflecting the dampening effect of an explicitly evaluative interface on personal expression. ESConv seekers will show the highest self-disclosure rates of all, consistent with the intentional help-seeking context of that dataset.
-
-**H4 — Emotional arc:** ESConv conversations will show a measurable negative-to-positive emotional arc across turns (distress → relief), consistent with Hill's Helping Skills Theory which underpins the dataset's design. WildChat conversations containing emotional content will show a flatter or more variable arc, reflecting the absence of structured therapeutic intent in AI responses.
-
-**H5 — Model differences:** Across LMSYS, models will differ significantly in their emotional response profiles. Models with stronger RLHF alignment (GPT-4) will show higher positive affect and lower emotional variability than open-source models (Mistral, LLaMA variants), consistent with research showing alignment training produces more uniformly warm and validating responses.
-
----
+These questions motivated the initial study design. As documented in the paper's Methods section, several additional analyses (the platform breakdown, the turn-pair mirroring measure, and two robustness checks) were added after an early finding prompted a closer look at mechanism — this is disclosed explicitly rather than presented as pre-registered.
 
 ## Datasets
 
 | Dataset | Conversations | Turns | Language | Focus |
 |---|---|---|---|---|
-| [ESConv](https://huggingface.co/datasets/thu-coai/esconv) | 910 | 26,648 | English | Human emotional support counseling |
-| [WildChat-1M](https://huggingface.co/datasets/allenai/WildChat-1M) | 50,000 | 290,284 | English | Real-world GPT-3/4 conversations |
-| [LMSYS-Chat-1M](https://huggingface.co/datasets/lmsys/lmsys-chat-1m) | 50,000 | 202,030 | English | Multi-model chat (gated) |
+| [ESConv](https://huggingface.co/datasets/thu-coai/esconv) | 910 | 26,648 | English | Human-to-human emotional support counseling |
+| [WildChat-1M](https://huggingface.co/datasets/allenai/WildChat-1M) | 50,000 | 290,284 | English | Real-world ChatGPT interaction logs |
+| [LMSYS-Chat-1M](https://huggingface.co/datasets/lmsys/lmsys-chat-1m) | 50,000 | 202,030 | English | Multi-model chat arena (gated; assistant turns only) |
 | [ShareChat](https://huggingface.co/datasets/tucnguyen/ShareChat) | 7,936 | 46,842 | English | Publicly shared conversations across 5 commercial AI platforms (ChatGPT, Claude, Gemini, Grok, Perplexity) |
 
-**Total primary corpus:** 108,846 conversations / 565,804 turns
-
-### What Makes This Novel
-
-Prior computational work on these datasets has focused on task completion, toxicity detection, and model benchmarking. No published study has applied a unified emotional analysis framework across all three datasets simultaneously, or used human emotional support conversations as a psychological baseline for comparison. The cross-dataset design allows us to isolate whether emotional dynamics in AI conversations are a property of the technology, the user's intent, or the conversational context — a question with direct implications for AI companion design and mental health applications.
-
----
+**Combined corpus:** 108,846 conversations / 565,804 turns.
 
 ## Pipeline
 
 ```
-01_load_data.py          Pull all datasets from HuggingFace, standardize into
-                         unified CSV (conversation_id, dataset, turn_number,
-                         speaker, text, model)
+01_load_data.py                       Load ESConv, WildChat, LMSYS; standardize into
+                                       unified CSV (conversation_id, dataset, turn_number,
+                                       speaker, text, model)
+01b_load_sharechat.py                 Load ShareChat (5 platforms, English-only)
         ↓
-02_emotion_scoring.py    Score every turn with SamLowe/roberta-base-go_emotions
-                         (27 GoEmotions labels → Ekman 6 + neutral, valence scores)
+02_emotion_scoring.py                 Score every turn with SamLowe/roberta-base-go_emotions
+                                       (27 GoEmotions labels → Ekman 6 + neutral, valence scores)
         ↓
-03_linguistic_features.py  Extract self-disclosure, hedging, empathy markers,
-                            cognitive analytical style, question rate, sentiment arc
+03_linguistic_features.py             Extract self-disclosure, hedging, empathy markers,
+03b_linguistic_features_sharechat.py  cognitive analytical style, question rate, valence arc slope
         ↓
-04_analysis.py           Statistical comparisons across datasets and speaker roles
+04_analysis.py                        Cross-dataset and ShareChat platform-level statistical comparisons
         ↓
-05_visualizations.py     Figures and tables for the paper
+05_visualizations.py                  Core figures and tables
+06_mirroring_analysis.py              Turn-pair emotional mirroring across all datasets and platforms
+07_paper_figures.py                   Paper-specific figures (self-disclosure, mirroring, platform profile, arc)
+08_crisis_adjacent_analysis.py        Crisis-adjacent language subset analysis
 ```
-
----
 
 ## Emotion Model
 
@@ -91,21 +83,19 @@ GoEmotions → Ekman mapping used:
 | surprise | confusion, curiosity, realization, surprise |
 | neutral | neutral |
 
----
-
-## Linguistic Features (Script 03)
+## Linguistic Features (Scripts 03 / 03b)
 
 | Feature | Operationalization |
 |---|---|
-| Self-disclosure intensity | 1st-person pronoun density (I/me/myself / word count) |
+| Self-disclosure | 1st-person pronoun density (I/me/myself / word count) |
 | Hedging / uncertainty | Epistemic hedge keyword density |
-| Empathy markers | ESConv strategy labels + keyword patterns |
-| Cognitive analytical style | Function word ratio |
-| Emotional variability | Per-session GoEmotions entropy |
-| Sentiment arc slope | Linear trend of valence across turns |
-| Question rate | `?` count / turn count per session |
+| Empathy markers | Supportive/validating keyword density |
+| Cognitive analytical style | Analytical-connective keyword density |
+| Emotion entropy | Shannon entropy over the 27-label GoEmotions distribution |
+| Valence arc slope | Linear trend of valence across turns, per conversation |
+| Question rate | `?` count / sentence count per turn |
 
----
+Each feature is a keyword- or token-density proxy, not a validated psychometric instrument — see `paper/methods.md` for full detail and limitations.
 
 ## Output Schema
 
@@ -120,77 +110,66 @@ GoEmotions → Ekman mapping used:
 | text | Raw turn text |
 | model | Model name or "human" for ESConv |
 
-**`data/processed/emotion_scores.csv`** — above + 27 GoEmotions scores + `top_emotion`, `ekman_emotion`, `valence_pos`, `valence_neg`
+ShareChat additionally carries a `platform` column (chatgpt / claude / gemini / grok / perplexity).
 
----
+**`data/processed/emotion_scores.csv`** — above + 27 GoEmotions scores + `top_emotion`, `ekman_emotion`, `valence_pos`, `valence_neg`
 
 ## Setup
 
 ```bash
-# Clone and activate environment
 git clone https://github.com/SabbySingh1/Psych-AI.git
 cd Psych-AI
 python -m venv robopsych_env
 source robopsych_env/bin/activate
-pip install datasets transformers torch pandas tqdm huggingface_hub
+pip install datasets transformers torch pandas scipy matplotlib tqdm huggingface_hub
 
-# LMSYS requires HuggingFace authentication (gated dataset)
+# LMSYS and ShareChat are gated on HuggingFace — request access, then:
 hf auth login
 
 # Run pipeline in order
 python scripts/01_load_data.py
+python scripts/01b_load_sharechat.py
 python scripts/02_emotion_scoring.py
 python scripts/03_linguistic_features.py
+python scripts/03b_linguistic_features_sharechat.py
 python scripts/04_analysis.py
 python scripts/05_visualizations.py
+python scripts/06_mirroring_analysis.py
+python scripts/07_paper_figures.py
+python scripts/08_crisis_adjacent_analysis.py
 ```
 
-> **Note:** Raw data and processed CSVs are excluded from the repo (`.gitignore`) — they are re-generated from HuggingFace on first run. Expect ~1 hour for full data load and ~1 hour for emotion scoring on Apple Silicon M-series.
-
----
+> Raw data and processed CSVs are excluded from the repo (`.gitignore`) — they are regenerated from HuggingFace on first run. Expect roughly an hour each for data loading and emotion scoring on Apple Silicon.
 
 ## Project Structure
 
 ```
 Psych-AI/
-├── scripts/
-│   ├── 01_load_data.py
-│   ├── 02_emotion_scoring.py
-│   ├── 03_linguistic_features.py   (coming)
-│   ├── 04_analysis.py              (coming)
-│   └── 05_visualizations.py        (coming)
-├── notebooks/
-│   └── exploration.ipynb           (coming)
+├── scripts/            Pipeline (01-08, see above)
+├── paper/               Full paper draft (abstract, introduction, methods, results, discussion)
 ├── outputs/
-│   ├── figures/
-│   └── tables/
-├── data/                           (gitignored)
+│   ├── figures/         All figures, 300 DPI PNG (+ PDF for paper figures)
+│   └── tables/          All result tables (CSV)
+├── data/                 Gitignored — regenerated from HuggingFace
 │   ├── raw/
 │   └── processed/
 └── README.md
 ```
 
----
-
-## Authors
+## Author
 
 - **Sabadnoor Singh** — Independent Researcher
 
----
-
-## Target Publication Venue
-
-Primary: *Computers in Human Behavior* (Elsevier) — the leading journal for psychological and behavioral research on technology interactions. Impact factor ~9.
-
-Backup: *PLOS ONE* — open access, broad methodological scope, ensures public availability of findings.
-
----
-
 ## References
 
-- Zahiri & Choi (2018). Emotion Detection on TV Show Transcripts with Sequence-Based Convolutional Neural Networks.
-- Liu et al. (2021). [ESConv: Towards Emotional Support Conversation Systems](https://arxiv.org/abs/2106.01144).
-- Zhao et al. (2023). [WildChat: 1M ChatGPT Interaction Logs in the Wild](https://arxiv.org/abs/2405.01470).
-- Zheng et al. (2023). [LMSYS-Chat-1M: A Large-Scale Real-World LLM Conversation Dataset](https://arxiv.org/abs/2309.11998).
-- Nguyen et al. [ShareChat](https://huggingface.co/datasets/tucnguyen/ShareChat).
-- Lowe et al. (2022). [SamLowe/roberta-base-go_emotions](https://huggingface.co/SamLowe/roberta-base-go_emotions).
+- Chu, M. D., Gerard, P., Pawar, K., Bickham, C., & Lerman, K. (2025). Illusions of Intimacy: How Emotional Dynamics Shape Human-AI Relationships. arXiv:2505.11649.
+- Chu, M. D., Wu, Y., Chen, Z., Hwang, A. H., & Luceri, L. (2026). When Chatbots Accommodate: What AI Companions Optimize for in Vulnerable Conversations. arXiv:2606.04431.
+- Liu, S., Zheng, C., Demasi, O., Sabour, S., Li, Y., Yu, Z., Jiang, Y., & Huang, M. (2021). Towards Emotional Support Dialog Systems. ACL 2021. arXiv:2106.01144.
+- Lowe, S. (2022). SamLowe/roberta-base-go_emotions.
+- McBain, R. K., et al. (2026). AI Chatbot Use and Disclosure for Mental Health Among US Adolescents and Young Adults. *JAMA Pediatrics*, 180(8), 884–890.
+- Yan, Y., Nguyen, T., Su, B., Lieffers, M., & Le, T. (2026). ShareChat: A Dataset of Chatbot Conversations in the Wild. arXiv:2512.17843.
+- Zhao, W., Ren, X., Hessel, J., Cardie, C., Choi, Y., & Deng, Y. (2024). WildChat: 1M ChatGPT Interaction Logs in the Wild. ICLR 2024. arXiv:2405.01470.
+- Zheng, L., et al. (2024). LMSYS-Chat-1M: A Large-Scale Real-World LLM Conversation Dataset. ICLR 2024. arXiv:2309.11998.
+- Zhu, J., Coifman, K. G., & Jin, R. (2026). Understanding Risk and Dependency in AI Chatbot Use from User Discourse. arXiv:2602.09339.
+
+Full reference list with complete author lists: [`paper/full_draft.md`](paper/full_draft.md#references).
