@@ -1,0 +1,25 @@
+# Data — too large for git, loaded from HuggingFace
+data/raw/
+data/processed/
+
+# HuggingFace cache
+.cache/
+__pycache__/
+*.pyc
+*.pyo
+
+# Python env
+robopsych_env/
+.venv/
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
+notebooks/.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+
+# Outputs (figures/tables committed selectively)
+outputs/figures/
+outputs/tables/
