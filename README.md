@@ -4,6 +4,10 @@ Computational comparison of emotional expression, empathy, and self-disclosure i
 
 **[Read the full paper →](paper/full_draft.md)**
 
+## Status
+
+Full pipeline complete (01–08); first full draft of the paper complete. Currently seeking feedback on methodology before revision and submission — in particular the turn-pair mirroring construction (Methods, "Turn-pair mirroring construction") and the underpowered crisis-adjacent subset analysis (Results, "Crisis-adjacent language analysis"; Discussion, "Limitations"), where AI-side sample sizes (n = 0–47 turn pairs) were too small to test formally.
+
 ## Overview
 
 People increasingly bring emotional disclosure and requests for support into conversations with AI systems that have no human counterpart in the loop. This project applies a single unified emotion-classification and linguistic-feature pipeline to four large-scale conversation corpora — human emotional-support counseling (ESConv), naturalistic AI chat (WildChat), a multi-model comparison arena (LMSYS-Chat-1M), and publicly shared conversations across five commercial AI platforms (ShareChat) — to ask whether AI systems track user distress the way a trained human supporter does, and whether that varies by platform.
@@ -145,11 +149,19 @@ python scripts/08_crisis_adjacent_analysis.py
 
 ```
 Psych-AI/
-├── scripts/            Pipeline (01-08, see above)
-├── paper/               Full paper draft (abstract, introduction, methods, results, discussion)
+├── scripts/              Pipeline (01-08, see above)
+├── paper/                Paper draft
+│   ├── abstract.md
+│   ├── introduction.md
+│   ├── methods.md
+│   ├── results.md
+│   ├── discussion.md
+│   ├── full_draft.md     Assembled draft (abstract + intro + methods + results + discussion + references)
+│   └── full_draft.tex    LaTeX version (figures/tables inserted separately, e.g. in Overleaf)
 ├── outputs/
-│   ├── figures/         All figures, 300 DPI PNG (+ PDF for paper figures)
-│   └── tables/          All result tables (CSV)
+│   ├── figures/          11 figures, 300 DPI PNG (+ PDF for figures 8-11)
+│   └── tables/           12 result CSVs (11 correspond to Table 1-11 in the paper;
+│                         mirroring_results.csv is supplementary binned-means data)
 ├── data/                 Gitignored — regenerated from HuggingFace
 │   ├── raw/
 │   └── processed/
