@@ -1,6 +1,10 @@
 # Psych-AI
 
-A computational psychology research project comparing emotional language patterns across human counseling and AI-generated conversation datasets. The goal is to characterize how emotional expression, empathy, self-disclosure, and sentiment evolve differently in human-to-human support contexts versus human-to-AI chat.
+## Overview
+
+Human interaction with AI systems has moved far beyond task completion. People increasingly turn to AI chatbots for emotional support, personal disclosure, and companionship — yet the psychological dynamics of these interactions remain poorly understood. This project applies computational methods to characterize how emotional expression, empathy, and self-disclosure unfold differently in human-to-human counseling versus human-to-AI conversation, across four large-scale public datasets totaling over 100,000 conversations.
+
+This sits within the emerging field of **robopsychology** — the psychological study of how humans relate to, are shaped by, and form patterns of interaction with AI systems. To our knowledge, this is the first study to conduct a cross-dataset emotional analysis using human counseling conversations (ESConv) as a psychological baseline against which naturalistic and structured AI conversations are systematically compared.
 
 ---
 
@@ -10,6 +14,22 @@ A computational psychology research project comparing emotional language pattern
 - Do AI models (GPT-4, Claude, Mistral, etc.) mirror user emotional states or respond with consistent affect regardless of user emotion?
 - How does self-disclosure and hedging language vary across datasets and speaker roles?
 - What does the emotional arc of a conversation look like — and does it differ between ESConv support sessions and open-domain AI chat?
+
+---
+
+## Hypotheses
+
+Hypotheses are grounded in the existing robopsychology and human-computer interaction literature and are stated directionally prior to analysis.
+
+**H1 — Emotion distribution:** AI assistants will show significantly higher positive affect (joy, optimism) and lower negative affect (sadness, fear) than human counselors in ESConv, regardless of the user's emotional state. This is predicted by research showing LLMs are biased toward positive emotional tone and by sycophancy literature demonstrating that AI systems systematically affirm and validate users.
+
+**H2 — Emotional mirroring:** Human counselors in ESConv will show greater turn-by-turn emotional alignment with the user than AI assistants across WildChat and LMSYS. AI assistants are expected to maintain more stable, context-independent affect — consistent with findings that LLMs lock into repetitive support tactics at nearly double the rate of human supporters.
+
+**H3 — Self-disclosure asymmetry:** Users in WildChat (naturalistic, unsolicited use) will show significantly higher rates of emotional self-disclosure than users in LMSYS (evaluation context), reflecting the dampening effect of an explicitly evaluative interface on personal expression. ESConv seekers will show the highest self-disclosure rates of all, consistent with the intentional help-seeking context of that dataset.
+
+**H4 — Emotional arc:** ESConv conversations will show a measurable negative-to-positive emotional arc across turns (distress → relief), consistent with Hill's Helping Skills Theory which underpins the dataset's design. WildChat conversations containing emotional content will show a flatter or more variable arc, reflecting the absence of structured therapeutic intent in AI responses.
+
+**H5 — Model differences:** Across LMSYS, models will differ significantly in their emotional response profiles. Models with stronger RLHF alignment (GPT-4) will show higher positive affect and lower emotional variability than open-source models (Mistral, LLaMA variants), consistent with research showing alignment training produces more uniformly warm and validating responses.
 
 ---
 
@@ -25,6 +45,10 @@ A computational psychology research project comparing emotional language pattern
 **Total primary corpus:** ~100,910 conversations / ~518,962 turns
 
 Talk2AI is used as a secondary cross-linguistic comparison only. Because the primary emotion classifier is English-only, Talk2AI is scored with a separate multilingual model and treated as supplementary evidence rather than a core dataset.
+
+### What Makes This Novel
+
+Prior computational work on these datasets has focused on task completion, toxicity detection, and model benchmarking. No published study has applied a unified emotional analysis framework across all three datasets simultaneously, or used human emotional support conversations as a psychological baseline for comparison. The cross-dataset design allows us to isolate whether emotional dynamics in AI conversations are a property of the technology, the user's intent, or the conversational context — a question with direct implications for AI companion design and mental health applications.
 
 ---
 
@@ -147,6 +171,20 @@ Psych-AI/
 │   └── processed/
 └── README.md
 ```
+
+---
+
+## Authors
+
+- **Sabadnoor Singh** — Independent Researcher
+
+---
+
+## Target Publication Venue
+
+Primary: *Computers in Human Behavior* (Elsevier) — the leading journal for psychological and behavioral research on technology interactions. Impact factor ~9.
+
+Backup: *PLOS ONE* — open access, broad methodological scope, ensures public availability of findings.
 
 ---
 
